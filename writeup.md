@@ -43,25 +43,24 @@ The repository came with test and calibration images to get us started. I have r
 
 ![alt text][image1]
 
-Also, please find below images included in the calibration folder, one where we can see the grid and one with the rock sample.
+Also, please find below images included in the calibration folder, one where we can see the grid on the terrain and one with a rock sample.
 
 ![alt text][image2]
 ![alt text][image3]
 
-In terms of functions added and modified, I have followed the same basic implementations as in the video walkthrough. Thus, we have 2 functions for discriminating between navigable terrain, obstacles and rocks and a modified perspect_transform to exclude from the analysis what is not in the field of the camera. More in detail, color_thresh function is used to separate navigable terrain from obstacles, whilst find_rocks is used to identify rock pixels. Color_thresh will output white pixels where the 3 channels of input image have value greater than the 3 threshold values in the input tuple. Find_rocks will output white pixels where red and green channels are greater than the first 2 values in the levels input tuple (levels) and where the blue channel is below the third value in levels. The output are in black and weight and white will represent navigable terrain in the first case and rocks in the second.
-
+In terms of functions added and modified, I have followed the same basic implementations as in the video walkthrough. Thus, we have one function (color_thresh) for discriminating between navigable terrain and obstacles, one to identify rocks (find_rocks) and a modified perspect_transform to exclude from the analysis what is not in the field of the camera. 
 
 #### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result.
 
-In Process_image() function we apply all functions defined in the lesson and the ones discussed above. The objective is to update a world map one image at a time where we superimpose a ground truth map of the environment (found in the calibration images folder) with the newly identified navigable terrain, obstacles and rocks. Given an image in input, we apply a perspective transform to have a top-down view of valid information of what the camera can see, color_threshold to identify navigable terrain, convert pixels value to rover-centric coordinate, then to a world coordinate. As implemented in the video walkthrough, obstacles updated the red channel of the world map, navigable terrain the blue channel and rocks all three channels.
+In Process_image() function we apply all functions defined in the lesson and the ones discussed above. The objective is to update a world map one image at a time by superimposing a ground truth map of the environment (found in the calibration images folder) with the newly identified navigable terrain, obstacles and rocks. Given an image in input, we apply a perspective transform to have a top-down view of valid information of what the camera can see, color_threshold to identify navigable terrain, convert pixels value to rover-centric coordinate, then to a world coordinate. As implemented in the video walkthrough, obstacles updated the red channel of the world map, navigable terrain the blue channel and rocks all three channels.
 
-After recording a manual run, I run the process_image() on test data and used the moviepy functions provided to create video output of the result. The video can be find in /output/test_mapping.mp4
+After recording a manual run, I run the process_image() on test data and used the moviepy functions provided to create video output of the result. Please find the video in /output/test_mapping.mp4
 
 ### Autonomous Navigation and Mapping
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
 
-I have modified the perception_step() to include all calls to functions as in the process_image() function in the notebook. Only few changes were introduced, such as update 2 newly added features of RoverState object (sample_angles, sample_dists) with mean angles and min distance of a cluster of pixels identified as rock samples. I wanted to use these fields in the decision_step() to help steer towards rocks but it is still WORK IN PROGRESS. Also, the default rgb_thresh in color_thresh was changed from (160,160,160) to (180,180,180) to improve fidelity.
+I have modified the perception_step() to include all functions calls as in the process_image() in the notebook. Only few changes were introduced, such as update 2 newly added features of RoverState object (sample_angles, sample_dists) with mean angle and min distance from a cluster of pixels identified as rock samples. I wanted to use these fields in the decision_step() to help steer towards rocks but it is still WORK IN PROGRESS. Also, the default rgb_thresh in color_thresh was changed from (160,160,160) to (180,180,180) to improve fidelity.
 The decision_step() was kept as it is (it is WORK IN PROGRESS), the only change being right at the end, when we don’t have vision data ahead, to try and steer
  	Rover.steer = np.clip(-15,15)
 
@@ -84,4 +83,4 @@ Fidelity:  61.1%
 
 ![alt text][image4]
 
-This first attempt to map the environment autonomously clearly can be hugely improved. Points that need careful attention are: 1- better decision when the rover is stuck, 2- better decision step when the rover can't figure out which way to go when it finds itself in a "clearing", 3- decelerate whilst covering the distance to a sample such that it reaches the sample at velocity =0, 4- moving towards the center of the map when all samples are collected
+This first attempt to map the environment autonomously can clearly be hugely improved. Points that need careful attention are: 1- better logic to assess when the rover is stuck and better decision logic to come out of it, 2- implement a logic to help the rover come out of a situation where it turn around in circle when in a "clearing", 3- implement some logic to reach the located rock sample with velocity at target almost 0, 4- moving towards the center of the map when all samples are collected
